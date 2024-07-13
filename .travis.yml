@@ -1,0 +1,16 @@
+os: osx
+osx_image: xcode12.5  # Specify the version of macOS image you want to use
+language: node_js  # Language setting for Node.js
+
+cache:
+  directories:
+    - node_modules
+
+install:
+  - npm install -g react-native-cli  # Install React Native CLI globally
+  - npm install  # Install project dependencies
+
+script:
+  - react-native run-ios --configuration=Release --simulator="iPhone 11"
+
+# Optionally, you can add deployment steps here for publishing to App Store
