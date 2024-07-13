@@ -2,9 +2,6 @@ os: osx
 osx_image: xcode12.5  
 language: node_js
 
-before_install:
-  - xcode-select --install
-
 cache:
   directories:
     - node_modules
