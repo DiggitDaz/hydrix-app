@@ -17,5 +17,5 @@ install:
   - npm install
 
 script:
-  - react-native run-ios --simulator="iPhone 11" --no-packager
+  - react-native run-ios --simulator="id:D6EEA7A7-58E3-4121-999A-3148B19B6AD2" --no-packager
 
