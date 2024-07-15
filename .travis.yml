@@ -19,7 +19,7 @@ cache:
 install:
   - npm install -g react-native-cli 
   - npm install  
-  - (cd ios && pod install)  
+ 
 
 before_script:
   - xcrun simctl list  
