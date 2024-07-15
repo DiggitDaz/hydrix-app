@@ -16,6 +16,10 @@ install:
   - npm install -g react-native-cli
   - npm install
 
+before_script:
+  - xcrun simctl list
+  
+
 script:
   - react-native run-ios --simulator="iPhone 11 (14.5)" --no-packager
 
