@@ -1,12 +1,16 @@
 os: osx
-osx_image: xcode13.2  
+osx_image: xcode14  
 language: node_js
 node_js:
   - "18"  
 
 before_install:
   - npm install -g npm@7 
-  - npm -v  
+  - npm -v 
+  - brew update
+  - brew install node
+  - brew install watchman
+  - gem install cocoapods -v '1.10.0'  
 
 cache:
   directories:
@@ -15,6 +19,7 @@ cache:
 install:
   - npm install -g react-native-cli
   - npm install
+  - (cd ios && pod install)
 
 before_script:
   - xcrun simctl list
