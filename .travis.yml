@@ -33,6 +33,8 @@ script:
 
   - react-native run-ios --simulator="iPhone 11"
 
+  - xcrun simctl status "iPhone 11"
+
 after_failure:
   - cat nohup.out  
   - cat metro.log
