@@ -27,8 +27,6 @@ before_script:
 script:
   - xcrun simctl boot "iPhone 11" 
 
-  - npm install -g metro-cli
-
-  - npm start &
+  - npm run start &
 
   - react-native run-ios --simulator="iPhone 11"
