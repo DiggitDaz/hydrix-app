@@ -27,7 +27,7 @@ before_script:
 script:
   - xcrun simctl boot "iPhone 11" 
 
-  - npm run start &
+  - nohup npm start &
 
   - sleep 40
 
