@@ -29,4 +29,6 @@ script:
 
   - npm run start &
 
+  - sleep 40
+
   - react-native run-ios --simulator="iPhone 11"
