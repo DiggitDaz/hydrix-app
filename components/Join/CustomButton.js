@@ -17,25 +17,20 @@ const CustomButton = ({ onPress, title, style }) => {
 
 const styles = StyleSheet.create({
   button: {
-        width: '100%',
-        borderRadius: 7.5,
-        backgroundColor: '#09022b', 
-        height: 55,
-        marginTop: 25,
+        width: '80%',
+        borderRadius: 4,
+        backgroundColor: '#45D9F4', 
+        height: 50,
         alignItems: 'center',
         justifyContent: 'center',
-        elevation: 5,
-        shadowColor: 'rgba(255, 255, 255, 0.5)',
-        
-  
   },
 
  
 
   buttonText: {
-    color: 'white',
+    color: 'black',
     fontSize: 16,
-    fontFamily: 'Montserrat-Bold',
+    fontWeight: '600',
     zIndex: 5,
   },
 });

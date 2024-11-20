@@ -11,7 +11,7 @@ const SuccessModal = ({ visible, onClose }) => {
 
       <View style={styles.modalContainer}>
         <View style={styles.modalContent}>
-          <Text style={styles.successMessage}>User added successfully!</Text>
+          <Text style={styles.successMessage}>successfully added!</Text>
             <TouchableOpacity onPress={onClose} style={styles.button4} >
                 <Text style={styles.button4Text}>Close</Text>
             </TouchableOpacity>
@@ -26,7 +26,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'transparent',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContent: {
     backgroundColor: 'rgba(26, 31, 57, 1)',

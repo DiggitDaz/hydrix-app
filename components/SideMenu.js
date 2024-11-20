@@ -1,84 +1,180 @@
-import React, { useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Dimensions } from 'react-native';
+// SideMenu.js
+import React, { useEffect, useState} from 'react';
+import { View, Text, StyleSheet, TouchableHighlight, Image } from 'react-native';
+import Logo from '../src/assets/Logo.png';
+import axios from 'axios';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import { faBell, faChevronRight, faGear, faLink, faPhone, faUserGroup } from '@fortawesome/free-solid-svg-icons';
+import { useAuth } from '../src/utils/AuthContext';
+import { useNavigate } from 'react-router-native';
+import { Link } from 'react-router-native';
 
-const Menu = ({ open, onClose }) => {
-  const menuRef = useRef();
+
+
+const SideMenu = () => {
+
+  const [userData, setUserData] = useState(null);
+  const [error, setError] = useState(null);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (!isInsideMenu(event)) {
-        onClose(); // Close the menu when clicking outside
-      }
-    };
+    fetchUserData();
+    const intervalId = setInterval(() => {
+        fetchUserData();
+    }, 30000);
 
-    const isInsideMenu = (event) => {
-      const { locationX, locationY } = event.nativeEvent;
-      const menuPosition = findMenuPosition();
-      const isInsideX = locationX >= menuPosition.left && locationX <= menuPosition.right;
-      const isInsideY = locationY >= menuPosition.top && locationY <= menuPosition.bottom;
-      return isInsideX && isInsideY;
-    };
+    return () => clearInterval(intervalId);
+}, []);
 
-    const findMenuPosition = () => {
-      const { x, y, width, height } = menuRef.current.measureLayout();
-      return {
-        left: x,
-        top: y,
-        right: x + width,
-        bottom: y + height
-      };
-    };
+const fetchUserData = async () => {
+    try {
+        const response = await axios.get('https://chainfree.info:4000/user'); 
+        //console.log('userData', data.userData);
+        setUserData(response.data.userData);
+        console.log(userData);
+        setDailyRate(response.data.userData.multiplier * 24 * response.data.userData.bonus); 
+        console.log(response.headers.authorization); 
+        setError(null); // Reset error state if successful
+    } catch (error) {
+        setError(error.message);
+    }
+};
 
-    const touchEventHandler = open ? 'touchStart' : 'none';
-    ScrollView.props.onTouchStart = touchEventHandler === 'none' ? null : handleClickOutside;
 
-    return () => {
-      // Cleanup event listener
-      ScrollView.props.onTouchStart = null;
-    };
-  }, [open, onClose]);
-
+  const getInitials = (name) => {
+    if (!name) return '';
+    return name[0].toUpperCase();
+};
   return (
-    <View style={styles.overlay}>
-      {open && (
-        <View style={styles.overlay} onTouchStart={onClose} />
-      )}
-      <ScrollView 
-        contentContainerStyle={styles.container} 
-        open={open} 
-        ref={menuRef}
-        onTouchStart={() => {}} // Ensure ScrollView is touchable
-      >
-        <View style={styles.menuItem}>
-
+    <View style={styles.container}>
+      <View style={styles.menuRow}>
+        <Image 
+          source={Logo}
+          style={styles.initialContainer}
+        />
+      </View>
+      
+      <Link to="/Settings" style={styles.linkStyle}>
+        <View style={styles.menuSubRow}>
+          <Text style={styles.menuText}>Settings</Text>
+          <FontAwesomeIcon icon={faChevronRight} size={15} color={"#A2A2B5"} />
         </View>
-      </ScrollView>
+      </Link>
+      <Link to="/TeamList" style={styles.linkStyle}>
+        <View style={styles.menuSubRow}>          
+          <Text style={styles.menuText}>Team Info</Text>
+          <FontAwesomeIcon icon={faChevronRight} size={15} color={"#A2A2B5"} />
+        </View>
+      </Link>
+      <Link to="/RewardAd" style={styles.linkStyle}>
+        <View style={styles.menuSubRow}>
+          <Text style={styles.menuText}>Reward Ads</Text>
+          <FontAwesomeIcon icon={faChevronRight} size={15} color={"#A2A2B5"} />
+        </View>
+      </Link>
+      <Link to="/Settings" style={styles.linkStyle}>
+        <View style={styles.menuSubRow}>
+          <Text style={styles.menuText}>Quick Links</Text>
+          <FontAwesomeIcon icon={faChevronRight} size={15} color={"#A2A2B5"} />
+        </View>
+      </Link>
+      <Link to="/imageUpload" style={styles.linkStyle}>
+        <View style={styles.menuSubRow}>
+          <Text style={styles.menuText}>Update Profile Image</Text>
+          <FontAwesomeIcon icon={faChevronRight} size={15} color={"#A2A2B5"} />
+        </View>
+      </Link>
+      <Link to="/ForgotPassword" style={styles.linkStyle}>
+        <View style={styles.menuSubRow}>
+          <Text style={styles.menuText}>Change Password</Text>
+          <FontAwesomeIcon icon={faChevronRight} size={15} color={"#A2A2B5"} />
+        </View>
+      </Link>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
   container: {
     flex: 1,
-    width: '50%',
-    flexDirection: 'column',
+    backgroundColor: '#05001f', 
     alignItems: 'center',
+    zIndex: 9999,
+    elevation: 15,
   },
-  menuItem: {
-    flexDirection: 'row',
-    width: '90%',
-    marginTop: 10,
+
+  initialContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+    
+
   },
-  menuText: {
-    color: '#eee',
-    fontSize: 16,
+
+  initial: {
+    fontSize: 62,
     fontWeight: '600',
-    paddingLeft: 10,
+    color: '#baffd8',
   },
+
+  menuRow: {
+    width: '90%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 25,
+  },
+
+  menuSubRow: {
+    width: '95%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#353542',
+    paddingBottom: 15,
+    paddingTop: 15,
+  },
+
+  linkStyle: {
+    width: '85%',
+  },
+ 
+  menuItem: {
+    fontSize: 20,
+    marginVertical: 10,
+  },
+
+  menuText: {
+    fontSize: 16,
+    color: '#fcfcfc',
+    fontFamily: 'Inter',
+  },
+
+  button: {
+    width: '80%',
+    borderRadius: 30,
+    backgroundColor: '#005DFA',
+    height: 50,
+    marginTop: 320,
+    marginBottom: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#005DFA',
+  },
+
+ButtonText: {
+    fontSize: 18,
+    color: 'white',
+    fontFamily: 'Inter',
+    
+},
+
 });
 
-export default Menu;
+export default SideMenu;

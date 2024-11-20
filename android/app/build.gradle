@@ -1,6 +1,8 @@
 apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
+apply plugin: 'com.google.gms.google-services'
+
 
 /**
  * This is the configuration block to customize your React Native Android app.
@@ -79,8 +81,8 @@ android {
         applicationId "com.HydrixApp"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 16
-        versionName "16.0"
+        versionCode 59
+        versionName "59.0"
     }
     signingConfigs {
         release {
@@ -112,10 +114,12 @@ android {
     }
 }
 
+
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
     implementation("com.facebook.react:flipper-integration")
+    implementation 'com.ironsource:adqualitysdk:7.22.0'
 
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")

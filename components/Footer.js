@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faHouse } from '@fortawesome/free-solid-svg-icons/faHouse';
 import { faPeopleGroup } from '@fortawesome/free-solid-svg-icons/faPeopleGroup';
 import { faFileLines } from '@fortawesome/free-solid-svg-icons/faFileLines';
+import { faGear, faLink, faUserPlus } from "@fortawesome/free-solid-svg-icons";
 
 
 
@@ -18,13 +19,23 @@ const Footer = () => {
           <View style={styles.innerContainer}>
           <Link to="/Home">
             <View style={styles.iconwrapper}>
-                <FontAwesomeIcon icon={ faHouse } color="#8e8e8e" size={35} />
+                <FontAwesomeIcon icon={ faHouse } color="#524C42" size={35} />
             </View>
           </Link>
           
-          <Link to="/User">
+          <Link to="/TeamList">
             <View style={styles.iconwrapper}>
-                <FontAwesomeIcon icon={ faFileLines } color="#8e8e8e" size={35} />
+                <FontAwesomeIcon icon={ faUserPlus } color="#524C42" size={35} />
+            </View>
+          </Link>
+          <Link to="/QuickLinks">
+            <View style={styles.iconwrapper}>
+                <FontAwesomeIcon icon={ faLink } color="#524C42" size={35} />
+            </View>
+          </Link>
+          <Link to="/Settings">
+            <View style={styles.iconwrapper}>
+                <FontAwesomeIcon icon={ faGear } color="#524C42" size={35} />
             </View>
           </Link>
           </View>
@@ -39,9 +50,12 @@ const styles = StyleSheet.create({
       flex: 1,
       alignItems: 'center',
       justifyContent: 'center',
-      flexDirection: 'column',
+      flexDirection: 'row',
       width: '100%',
       marginTop: 10,
+      position: 'absolute',
+      bottom: 0,
+      
       
     },
 

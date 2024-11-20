@@ -2,24 +2,51 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const mysql = require('mysql');
 const cors = require('cors');
-const app = express();
-const axios = require('axios');
+const session = require('express-session');
 const moment = require('moment');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-const session = require('express-session');
 const nodemailer = require('nodemailer');
-
-
 const crypto = require('crypto');
+const axios = require('axios');
+const fs = require('fs');
+const https = require('https');
+const path = require('path')
 require('dotenv').config();
 
-const sessionSecret = 'HAYDENBRODEY';
-const JWTSecret = 'EPSTEINDKHS';
+// HTTPS server setup
+const app = express();
+
+const sessionSecret = process.env.SESSION_SECRET;
+const JWTSecret = process.env.JWT_SECRET;
+const PORT = 4000;
+
+app.use('/images', express.static(path.join(__dirname, 'images')));
 
 
+// Paths to SSL certificate and key files
+const certPaths = {
+    privateKeyPath: process.env.PRIVATE_KEY_PATH,
+    certificatePath: process.env.CERTIFICATE_PATH,
+};
 
-const PORT = process.env.PORT || 4000;
+let privateKey, certificate;
+
+try {
+    privateKey = fs.readFileSync(certPaths.privateKeyPath, 'utf8');
+} catch (err) {
+    console.error('Error loading private key:', err);
+}
+
+try {
+    certificate = fs.readFileSync(certPaths.certificatePath, 'utf8');
+} catch (err) {
+    console.error('Error loading certificate:', err);
+}
+
+
+// HTTPS options
+const credentials = { key: privateKey, cert: certificate };
 
 app.use(bodyParser.json());
 app.use(cors());
@@ -27,23 +54,23 @@ app.use(session({
     secret: sessionSecret,
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: false }
+    cookie: { secure: true } // Ensure cookies are only sent over HTTPS
 }));
 
 app.use((req, res, next) => {
-    console.log('Session data:', req.session);
     next();
 });
 
-///////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 
 // MySQL connection configuration
 const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    database: 'awesomapp', //awesomapp
-    password: '' //''
-    
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    database: process.env.DB_DATABASE,
+    password: process.env.DB_PASSWORD
 });
 
 // Connect to MySQL database
@@ -52,21 +79,116 @@ db.connect((err) => {
         console.error('Error connecting to MySQL database: ' + err.stack);
         return;
     }
-    console.log('Connected to MySQL database as id ' + db.threadId);
 });
 
+// Define a route example
+app.get('/', (req, res) => {
+    
+    res.send('Hello, HTTPS world!');
+});
+
+// Create an HTTPS server
+const httpsServer = https.createServer(credentials, app);
+
+httpsServer.listen(PORT, () => {
+    
+});
+
+// Error handling for server
+httpsServer.on('error', (err) => {
+    console.error('HTTPS server error:', err);
+});
+
+// Error handling for uncaught exceptions
+process.on('uncaughtException', (err) => {
+    console.error('Uncaught exception:', err);
+});
+
+const http = require('http'); // Make sure to include this if not already present
+
+// Create an Express app for HTTP redirection
+const httpApp = express();
+
+// Redirect all HTTP requests to HTTPS
+httpApp.use((req, res) => {
+    const secureUrl = `https://${req.headers.host}${req.url}`;
+    res.redirect(301, secureUrl); // Permanent redirect
+});
+
+const HTTP_PORT = 4000; // Port for HTTP
+http.createServer(httpApp).listen(HTTP_PORT, () => {
+    
+});
+
+
+
 /////////////////////////////////////////////////////////////////////////////////////////////
+
+// Pull updates from Community-updates
+
+app.get('/community_update', (req, res) => {
+    // SQL Query to select all rows
+    const query = `SELECT * FROM community_updates`;
+    
+    db.query(query, (err, result) => {
+      if (err) {
+        console.error('Error fetching rows:', err);
+        return res.status(500).send('Error fetching data');
+      }
+  
+      // Send the fetched rows as JSON response
+      res.json(result);
+    });
+  });
+
+  /////////////////////////////////////////////////////////
+
+// add emails to launch promo mailing list
+
+app.post('/promoemail', (req, res) => {
+    const email = req.body.email;
+    const filePath = path.join(__dirname, 'promoemail.json');
+  
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+  
+    // Read existing emails from file
+    fs.readFile(filePath, 'utf8', (err, data) => {
+      if (err) {
+        return res.status(500).json({ error: 'Error reading file' });
+      }
+  
+      let emailList = [];
+  
+      // Parse existing data if the file has content
+      if (data) {
+        emailList = JSON.parse(data);
+      }
+  
+      // Add new email to the list
+      emailList.push({ email });
+  
+      // Write updated email list to the file
+      fs.writeFile(filePath, JSON.stringify(emailList, null, 2), (err) => {
+        if (err) {
+          return res.status(500).json({ error: 'Error writing to file' });
+        }
+  
+        res.json({ message: 'Email saved successfully!' });
+      });
+    });
+  });
+
+/////////////////////////////////////////////////
 
 
 let temporaryResetToken; // Server-side variable to store the reset token temporarily
 
 app.post('/forgot-password', (req, res) => {
-    console.log('Received forgot password request for email:', req.body.email);
     const { email } = req.body;
     const resetToken = crypto.randomBytes(32).toString('hex');
     const expires = Date.now() + 3600000; // 1 hour
-    console.log(resetToken);
-    console.log('Attempting to update user with email:', email);
 
     temporaryResetToken = resetToken; // Store the reset token temporarily
 
@@ -75,7 +197,6 @@ app.post('/forgot-password', (req, res) => {
             return res.status(500).send('Error saving token');
         }
 
-        console.log('Token saved successfully for email:', email);
 
         res.status(200).send('An email has been sent with further instructions.');
     });
@@ -83,7 +204,6 @@ app.post('/forgot-password', (req, res) => {
 
 app.post('/reset-password', (req, res) => {
     const { password } = req.body;
-    console.log(temporaryResetToken, password); // Use the temporarily stored reset token
 
     // Use the temporarily stored reset token to reset the password
     db.query('SELECT * FROM users WHERE reset_password_token = ? AND reset_password_expires > ?', [temporaryResetToken, Date.now()], (err, results) => {
@@ -106,56 +226,97 @@ app.post('/reset-password', (req, res) => {
                 res.status(200).send('Password has been updated');
 
                 temporaryResetToken = null; // Clear the temporary reset token variable
-                console.log(temporaryResetToken);
+                
 
             });
         });
     });
 });
 
+// returns activity status of team members
+
+app.post('/api/getUserActivityStatus', (req, res) => {
+    const { usernames } = req.body;
+
+    if (!usernames || !Array.isArray(usernames)) {
+        return res.status(400).json({ error: 'Invalid input' });
+    }
+
+    // Create a query to get the activity status of the given usernames
+    const query = 'SELECT username, activity_status FROM users WHERE username IN (?)';
+    db.query(query, [usernames], (err, results) => {
+        if (err) {
+            return res.status(500).json({ error: 'Database error' });
+        }
+        res.json(results);
+    });
+});
+
 /////////////////////////////////////////////////////////////////////////////////////////////
 
 // API registers new user and adds info to mySQL
-app.post('/register', async (req, res) => {
-    const { userName, email, password, referrer, pin } = req.body;
-    if (!userName || !email || !password || !referrer || !pin) {
+app.post('/register', (req, res) => {
+    const { userName, email, password, referrer } = req.body;
+
+    if (!userName || !email || !password || !referrer) {
         return res.status(400).json({ error: 'All fields are required' });
     }
 
-    try {
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const referrerQuery = 'SELECT * FROM users WHERE username = ?';
-        db.query(referrerQuery, [referrer], (refErr, refResult) => {
-            if (refErr) {
-                console.error('Error checking referrer:', refErr);
+    // Check if the username already exists
+    const duplicateCheckQuery = 'SELECT * FROM users WHERE username = ?';
+    db.query(duplicateCheckQuery, [userName], (dupErr, dupResult) => {
+        if (dupErr) {
+            console.error('Error checking duplicate username:', dupErr);
+            return res.status(500).json({ error: 'Internal Server Error' });
+        }
+
+        if (dupResult.length > 0) {
+            return res.status(400).json({ error: 'Username already exists' });
+        }
+
+        // If no duplicate, hash the password and proceed with referrer check
+        bcrypt.hash(password, 10, (hashErr, hashedPassword) => {
+            if (hashErr) {
+                console.error('Error hashing password:', hashErr);
                 return res.status(500).json({ error: 'Internal Server Error' });
             }
 
-            if (refResult.length === 0) {
-                return res.status(400).json({ error: 'Invalid referrer' });
-            }
-            const insertQuery = 'INSERT INTO users (username, email, password, referrer, pin) VALUES (?, ?, ?, ?, ?)';
-            db.query(insertQuery, [userName, email, hashedPassword, referrer, pin], (err, result) => {
-                if (err) {
-                    console.error('Error inserting user data:', err);
+            // Check if the referrer exists
+            const referrerQuery = 'SELECT * FROM users WHERE username = ?';
+            db.query(referrerQuery, [referrer], (refErr, refResult) => {
+                if (refErr) {
+                    console.error('Error checking referrer:', refErr);
                     return res.status(500).json({ error: 'Internal Server Error' });
                 }
-                const updateQuery = 'UPDATE users SET team = IFNULL(team, 0) + 1 WHERE username = ?';
-                db.query(updateQuery, [referrer], (updateErr, updateResult) => {
-                    if (updateErr) {
-                        console.error('Error updating referrer team size:', updateErr);
-                        return res.status(200).json({ message: 'Registration successful, but failed to update referrer team size' });
+
+                if (refResult.length === 0) {
+                    return res.status(400).json({ error: 'Invalid referrer' });
+                }
+
+                // Insert the new user
+                const insertQuery = 'INSERT INTO users (username, email, password, referrer) VALUES (?, ?, ?, ?)';
+                db.query(insertQuery, [userName, email, hashedPassword, referrer], (insertErr, result) => {
+                    if (insertErr) {
+                        console.error('Error inserting user data:', insertErr);
+                        return res.status(500).json({ error: 'Internal Server Error' });
                     }
-                    console.log('Referrer team size updated successfully');
-                    res.status(200).json({ message: 'User registered successfully' });
+
+                    // Update referrer's team size
+                    const updateQuery = 'UPDATE users SET team = IFNULL(team, 0) + 1 WHERE username = ?';
+                    db.query(updateQuery, [referrer], (updateErr, updateResult) => {
+                        if (updateErr) {
+                            console.error('Error updating referrer team size:', updateErr);
+                            return res.status(200).json({ message: 'Registration successful, but failed to update referrer team size' });
+                        }
+                        
+                        res.status(200).json({ message: 'User registered successfully' });
+                    });
                 });
             });
         });
-    } catch (error) {
-        console.error('Error registering user:', error);
-        res.status(500).json({ error: 'Internal server error' });
-    }
+    });
 });
+
 
 ////////////////////////////////////////////////////////////////////////////
 
@@ -191,10 +352,10 @@ app.post('/login', (req, res) => {
                 }
 
                 const token = generateToken(user.id);
-                console.log('Generated token:', token);
+                
 
                 req.session.userId = user.id;
-                console.log('aliensman', req.session.userId);
+                
 
                 const userData = { id: user.id, username: user.username, email: user.email }; 
                 res.json({ token, userData });
@@ -211,13 +372,11 @@ app.post('/login', (req, res) => {
 const authenticateToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
-    console.log('Authorization header:', authHeader); // Log the entire Authorization header
-    console.log('Token:', token); // Log the extracted token
     if (token == null) return res.sendStatus(401);
 
     jwt.verify(token, JWTSecret, (err, user) => {
         if (err) return res.sendStatus(403);
-        console.log('User ID extracted from token:', user.userId);
+        
 
         req.userId = user.userId;
         req.token = token;
@@ -228,7 +387,6 @@ const authenticateToken = (req, res, next) => {
 // Endpoint to get user data dynamically based on user ID from token
 app.get('/user', authenticateToken, async (req, res) => {
     const userId = req.userId; // Extracted user ID from token
-    console.log('User ID at start of user call', userId);
     const query = `SELECT * FROM users WHERE id = ${userId}`;
     
     db.query(query, async (error, results, fields) => {
@@ -261,10 +419,7 @@ app.get('/user', authenticateToken, async (req, res) => {
                     res.status(500).json({ error: 'Internal Server Error' });
                     return;
                 }
-                
-                console.log('Multiplier updated in the database');
-
-                console.log('Retrieved user data:', userData);
+            
                 res.status(200).json({ userData }); // Send user data along with multiplier back as response
             });
         } catch (error) {
@@ -274,10 +429,11 @@ app.get('/user', authenticateToken, async (req, res) => {
     });
 });
 
+
+
 app.post('/updateBalance', (req, res) => {
     const { miningBalance, userId } = req.body;
-    console.log('Session data at updateBalance:', req.session);
-    console.log('Received mining balance update:', miningBalance);
+    
 
     // Get the current timestamp
     const currentTimestamp = new Date().toISOString().slice(0, 19).replace('T', ' ');
@@ -290,7 +446,7 @@ app.post('/updateBalance', (req, res) => {
             res.status(500).json({ error: 'Internal Server Error' });
             return;
         }
-        console.log('User balance updated successfully');
+        
         res.status(200).json({ message: 'User balance updated successfully' });
     });
 });
@@ -310,13 +466,19 @@ app.get('/totalUsers', (req, res) => {
     });
 });
 
+
+
 ////////////////////////////////////////////////////////////////////////////
 
 class Mining {
+
+// Mining class constructor with class binding
     constructor() {
-        this.baseRate = 1; // Base mining rate per hour
-        this.miningStatusByUser = {}; // Mapping of user IDs to their mining state
-        this.miningIntervalsByUser = {}; // Mapping of user IDs to their mining intervals
+// Base mining rate
+        this.baseRate = 1;
+// map user ID to mining state
+        this.miningStatusByUser = {}; // Dev /Mapping of user IDs to their mining state
+        this.miningIntervalsByUser = {}; // DevMapping of user IDs to their mining intervals
 
         // Bind class methods to the current instance
         this.startMining = this.startMining.bind(this);
@@ -329,7 +491,6 @@ class Mining {
 
     async calculateMiningRate(userId) {
         let rate = this.baseRate;
-        console.log('Rate calculation for user:', userId, 'base rate:', rate);
 
         try {
             const teamSize = await this.fetchTeamSizeFromDatabase(userId); // Fetch team size dynamically
@@ -388,13 +549,13 @@ class Mining {
 
             try {
                 await this.updateMiningStatusToActive(userId);
-                console.log('Mining status updated successfully for user:', userId);
+                
 
                 await this.updateCurrentRate(userId, 1);
-                console.log('Current rate updated successfully for user:', userId);
+                
 
                 await this.updateBaseRate(userId, 1);
-                console.log('Base rate updated successfully for user:', userId);
+                
 
                 const teamSize = await this.fetchTeamSizeFromDatabase(userId); // Fetch team size dynamically
                 const rate = await this.calculateMiningRate(userId); // Calculate mining rate
@@ -418,10 +579,9 @@ class Mining {
                         miningBalance: this.miningStatusByUser[userId].totalMined,
                         userId: userId
                     };
-                    const url = 'http://77.68.102.168:4000/updateBalance';  //  77.68.102.168
+                    const url = 'https://chainfree.info:4000/updateBalance';  //  77.68.102.168
                     axios.post(url, postData, { withCredentials: true })
                         .then(response => {
-                            console.log('Balance updated successfully for user:', userId, response.data);
                         })
                         .catch(error => {
                             console.error('Error updating balance for user:', userId, error);
@@ -455,6 +615,12 @@ class Mining {
             });
         });
     }
+
+    
+    
+    // Function to fetch balance history from the database
+    
+    
 
     async fetchCurrentBalanceFromDatabase(userId) {
         return new Promise((resolve, reject) => {
@@ -532,6 +698,19 @@ app.get('/startMining', authenticateToken, (req, res) => {
     const userId = req.userId;
     mining.startMining(userId);
     res.send('Mining started successfully');
+});
+
+app.post('/logs', (req, res) => {
+    const { message, additionalInfo } = req.body;
+    const logEntry = `${new Date().toISOString()} - ${message} - ${JSON.stringify(additionalInfo)}\n`;
+
+    fs.appendFile('logs.txt', logEntry, (err) => {
+        if (err) {
+            console.error('Failed to write log entry:', err);
+            return res.status(500).json({ message: 'Failed to write log entry' });
+        }
+        res.status(200).json({ message: 'Log entry recorded' });
+    });
 });
 
 app.listen(PORT, () => {

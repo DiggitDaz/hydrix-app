@@ -1,4 +1,11 @@
 {
   "name": "HydrixApp",
-  "displayName": "HydrixApp"
+  "displayName": "HydrixApp",
+  "react-native-google-mobile-ads": {
+  "android_app_id": "ca-app-pub-2950728134461367~8113216396"
 }
+  
+}
+
+  
+

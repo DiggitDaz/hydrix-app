@@ -1,20 +1,29 @@
 import React from 'react';
 import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 
-const ErrorModal = ({ visible, onClose }) => {
+const ErrorModal = ({ visible, onClose, errorMessage }) => {
   return (
     <Modal
       visible={visible}
       animationType="slide"
       transparent={true}
-      onRequestClose={onClose}>
-
-      <View style={styles.modalContainer}>
+      onRequestClose={onClose}
+    >
+      {/* TouchableOpacity to detect background clicks */}
+      <TouchableOpacity 
+        style={styles.modalContainer} 
+        activeOpacity={1} 
+        onPress={onClose} // Close modal when background is pressed
+      >
         <View style={styles.modalContent}>
-          <Text style={styles.successMessage}>Error Adding User!</Text>
+
+          {/* TouchableOpacity here to prevent modal content from closing the modal */}
+          <TouchableOpacity activeOpacity={1} style={styles.modalContentInner}>
+            <Text style={styles.successMessage}>{errorMessage || 'An error occurred'}</Text>
+          </TouchableOpacity>
             
         </View>
-      </View>
+      </TouchableOpacity>
     </Modal>
   );
 };
@@ -24,34 +33,25 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'transparent',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)', // Darken the background for better visibility
   },
   modalContent: {
-    backgroundColor: 'rgba(26, 31, 57, 1)',
-    padding: 20,
-    borderRadius: 10,
+    justifyContent: 'center',
     alignItems: 'center',
+    width: '80%',
+  },
+  modalContentInner: {
+    backgroundColor: 'rgba(78, 78, 97, 0.8)', 
+    borderRadius: 4, 
+    borderWidth: 1,
+    borderColor: 'rgba(207, 207, 252, 0.75)',
+    padding: 20,
   },
   successMessage: {
     fontSize: 18,
-    marginBottom: 10,
-    color: '#eee',
+    color: 'white',
+    fontFamily: 'Inter',
   },
-
-  button4: {
-    width: 150,
-    height: 35,
-    backgroundColor: 'rgba(100, 248, 253, 0.8)', 
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 20,
-    
-  },
-
-  button4Text: {
-    color: 'black',
-  }
-
 });
 
 export default ErrorModal;

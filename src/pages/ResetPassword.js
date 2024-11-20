@@ -1,64 +1,82 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, TextInput, Text, StyleSheet, Image } from 'react-native';
 import CustomButton from '../../components/Join/CustomButton';
 import axios from 'axios';
-import { useAuth } from '../utils/AuthContext';
-import { Link } from 'react-router-native';
-import { useParams, useNavigate } from 'react-router-native';
-import ResetImage from '../assets/ResetImage.png';
+import RadialGradient from 'react-native-radial-gradient';
+import { useNavigate } from 'react-router-native';
+import { USER_DATA } from '@env';
 
+/////////////////////////////////////////////////////////////////////////////////////
 
 const ResetPassword = () => {
   const [password, setPassword] = useState('');
   const [resetToken, setResetToken] = useState('');
-
   const navigate = useNavigate();
 
-  // Function to handle password reset
   const handleResetPassword = async () => {
     try {
-      // Send a POST request to reset password endpoint with token in the request body
-      const response = await axios.post('http://77.68.102.168:4000/reset-password', { token: resetToken, password });
-      console.log(password);
-      console.log(resetToken);
-      // Log success message and navigate to Login screen
-      console.log('Success', 'Your password has been updated');
+      const response = await axios.post(`${USER_DATA}/reset-password`, { token: resetToken, password });
       navigate('/Login');
     } catch (error) {
-      // Log error message if request fails
-      console.log('Error', 'Something went wrong. Please try again.');
       navigate('/ForgotPassword')
     }
   };
 
-   
+////////////////////////////////////////////////////////////////////////////////////////
 
-    return (
-        <View style={styles.container}>
-          <Text style={styles.topText}>Excellent</Text>
-          <Text style={styles.subtitle}>Now reset your password by inserting it into the box below</Text>
-          <Image 
-            source={require('../assets/ResetImage.png')}
-            style={styles.image}
+  return (
+    <View style={styles.container}>
+      <RadialGradient
+        style={{position: 'absolute', top: 800, right: 300, borderRadius: 150, width: 300, height: 300, zIndex: 10 }}  // Add width, height, and zIndex
+        colors={['rgba(193, 2, 196, 0.3)', 'rgba(193, 2, 196, 0.1)', '#001B39' ]}
+        center={[150, 150]}  
+        radius={150}  
+      />
+      <RadialGradient
+        style={{position: 'absolute', top: 260, left: 200, borderRadius: 150, width: 300, height: 300, zIndex: 10 }}  // Add width, height, and zIndex
+        colors={['rgba(193, 2, 196, 0.3)', 'rgba(193, 2, 196, 0.1)', '#001B39' ]}
+        center={[150, 150]}  
+        radius={150}  
+      />
+      <RadialGradient
+        style={{position: 'absolute', top: 275, left: -150, borderRadius: 150, width: 300, height: 300, zIndex: 10 }}  // Add width, height, and zIndex
+        colors={['rgba(193, 2, 196, 0.3)', 'rgba(193, 2, 196, 0.1)', '#001B39' ]}
+        center={[150, 150]}  
+        radius={150}  
+      />
+      <RadialGradient
+        style={{position: 'absolute', top: 525, right: -50, borderRadius: 150, width: 300, height: 300, zIndex: 10 }}  // Add width, height, and zIndex
+        colors={['rgba(193, 2, 196, 0.3)', 'rgba(193, 2, 196, 0.1)', '#001B39' ]}
+        center={[150, 150]}  
+        radius={150}  
+      />
+      <RadialGradient
+        style={{position: 'absolute', top: 0, left: 50, borderRadius: 150, width: 300, height: 300, zIndex: 10 }}  // Add width, height, and zIndex
+        colors={['rgba(193, 2, 196, 0.3)', 'rgba(193, 2, 196, 0.1)', '#001B39' ]}
+        center={[150, 150]} 
+        radius={150}  
+      />
+      <View style={styles.form}>
+        <Text style={styles.subtitle}>Enter a New Password</Text>
+        <View style={styles.fomrRow}>
+          <Text style={styles.forgotText}>New Password</Text>
+        </View>
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter New Password..."
+            placeholderTextColor={"#8e8e8e"}
+            value={password}
+            onChangeText={setPassword}
           />
-          <View style={styles.form}>
-            <View style={styles.fomrRow}>
-              <Text style={styles.forgotText}>New Password</Text>
-            </View>
-            <View style={styles.inputContainer}>
-              <TextInput
-                style={styles.input}
-                placeholder="Enter New Password..."
-                placeholderTextColor={"#8e8e8e"}
-                value={password}
-                onChangeText={setPassword}
-              />
-            </View>
-              <CustomButton title="Submit" onPress={handleResetPassword} />
-            </View>
           </View>
+          <CustomButton title="Submit" onPress={handleResetPassword} />
+        </View>
+    </View>
     );
 };
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
 
 const styles = StyleSheet.create({
   container: {
@@ -67,145 +85,60 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flexDirection: 'column',
     width: '100%',
-    backgroundColor: 'rgba(255, 255, 255, 1)',
-  },
-
-  error: {
-    color: '#8e8e8e',
-  },
-
-  image: {
-    width: 300,
-    height: 300,
+    backgroundColor: '#001B39',
   },
 
   form: {
-    backgroundColor: 'rgba(255, 255, 255, 1)',
-    borderRadius: 20,
-    padding: 20,
-    width: 360,
-    shadowColor: 'black',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.5,
-    borderRadius: 7.5,
-    marginBottom: '5%',
-    marginTop: '5%',
-    transition: 'all 0.4s ease-in-out',
+    flexDirection: 'column',
     alignItems: 'center',
-  },
-
-  topText: {
-    fontSize: 26,
-    color: '#09022b',
-    fontFamily: 'Montserrat-Bold',
-    textShadowColor: '#eee',
-    
-    
+    justifyContent: 'space-between',
+    width: '90%',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderRadius: 4,
+    zIndex: 20,
+    paddingBottom: 20,
+    paddingTop: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
 
   subtitle: {
-    color: '#09022b',
-    fontFamily: 'Montserrat-Regular',
+    color: 'white',
     fontSize: 16,
-    marginTop: 10,
     textAlign: 'center',
     width: '80%',
   },
 
   fomrRow: {
-    width: '100%',
+    width: '80%',
     flexDirection: 'row',
     justifyContent: 'flex-start',
-  },
-
-  titleContainer: {
-    width: '100%',
-    justifyContent: 'flex-start',
-  },
-
-  forgotContainer: {
-    width: '90%',
-    justifyContent: 'flex-end',
-    flexDirection: 'row',
-    marginTop: 15,
+    marginTop: 20,
   },
 
   forgotText: {
-    fontFamily: 'Montserrat-Bold',
-    color: '#09022b',
-  },
-
-  orContainer: {
-    width: '90%',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    flexDirection: 'row',
-    marginTop: 40,
-  },
-
-  orMasterContainer: {
-    height: 200,
-    width: '100%',
-  },
-
-  orText: {
-    fontFamily: 'notoserif',
-    fontWeight: '500',
-    color: '#8e8e8e',
-  },
-
-  title: {
+    fontFamily: 'white',
     color: 'white',
-    fontFamily: 'Montserrat-Bold',
-    fontSize: 36,
-    marginTop: 30,
-    marginBottom: 30,
   },
 
   inputContainer: {
-    height: 55,
+    height: 50,
     position: 'relative',
-    width: '100%',
-    marginTop: 15,
-    marginBottom: 15,
+    width: '80%',
+    marginTop: 10,
+    marginBottom: 20,
   },
 
   input: {
-    borderRadius: 7.5,
-    backgroundColor: '#eee',
-    color: '#8e8e8e',
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: '#8e8e8e',
+    color: '#353542',
     fontSize: 14,
-    fontFamily: 'Montserrat-Regular',
     height: '100%',
     width: '100%',
     paddingLeft: 25,
   },
-
-  fomrRow: {
-    width: '100%',
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-  },
-
-  button: {
-    width: '100%',
-    borderRadius: 7.5, //'#6f2cf5', 
-    borderColor: 'rgba(175, 191, 29, 1)',
-    borderWidth: 2,
-    height: 55,
-    marginTop: 25,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  buttonText: {
-    color: 'rgba(175, 191, 29, 1)',
-    fontSize: 20,
-    fontFamily: 'Poppins',
-    fontWeight: '700',
-  },
-
-  
 });
 
 export default ResetPassword;
