@@ -19,6 +19,7 @@ import { AppRegistry } from 'react-native';
 import { ImageProvider } from './src/utils/ImageContext';
 import mobileAds from 'react-native-google-mobile-ads';
 import * as Sentry from "@sentry/react-native";
+import { SENTRY_DNS } from '@env';
 
 
 
@@ -36,7 +37,7 @@ mobileAds()
 const App = () => {
 
   Sentry.init({
-    dsn: "https://61fb82b766066c6151d5f20de3be5c85@o4505793310949376.ingest.us.sentry.io/4507690604691456",
+    dsn: SENTRY_DNS,
     debug: true,
   });
 
